@@ -1,6 +1,6 @@
 defmodule Grep do
   @spec grep(String.t(), [String.t()], [String.t()]) :: String.t()
-  def grep(pattern, flags \\ [], files) do
+  def grep(pattern, flags, files) do
     files
     |> Enum.map(&file_grep(pattern, match_flags(flags), &1))
     |> List.flatten()
@@ -46,12 +46,17 @@ defmodule Grep do
 
   defp match_flags(flags) do
     {switches, _} =
-      OptionParser.parse!(flags, switches: [n: :boolean, l: :boolean], aliases: [n: :m, l: :l])
+      OptionParser.parse!(flags,
+        switches: [i: :boolean, v: :boolean, x: :boolean],
+        aliases: [i: :i, v: :v, x: :x]
+      )
+
+    switches
   end
 
   defp format_flags(flags, nb_files) do
     {switches, _} =
-      OptionParser.parse!(flags, switches: [n: :boolean, l: :boolean], aliases: [n: :m, l: :l])
+      OptionParser.parse!(flags, switches: [n: :boolean, l: :boolean], aliases: [n: :n, l: :l])
 
     if nb_files > 1, do: switches ++ [m: true], else: switches
   end
