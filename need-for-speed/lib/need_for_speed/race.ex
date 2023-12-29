@@ -10,9 +10,7 @@ defmodule NeedForSpeed.Race do
       Enum.any?(race.cars, &(&1.distance_driven_in_meters >= race.total_distance_in_meters)) ->
         "Finished"
 
-        Enum.an()
-
-      y?(race.cars, &(&1.distance_driven_in_meters > 0)) ->
+      Enum.any?(race.cars, &(&1.distance_driven_in_meters > 0)) ->
         "In Progress"
 
       true ->
@@ -24,3 +22,4 @@ defmodule NeedForSpeed.Race do
     "#{d} meters"
   end
 end
+
