@@ -115,7 +115,14 @@ Your friend, an aspiring artist, reached out to you with a project idea. Let's c
 
 Constraints help creativity and shorten project deadlines, so you've both agreed to limit your masterpiece to a single shape - the circle. But there's going to be many circles. And they can move around! You'll call it... dancing dots.
 
-Your friend will definitely want to come up with new elaborate movements for the dots, so you'll start coding by creating an architecture that will allow you to later define new animations easily.
+Your friend will definitely want to come up with new elaborate movements for the dots, so you'll start coding by creating an architecture that will allow you to later define new animations easily. 될 것입니다.
+
+아티스트 지망생인 친구가 프로젝트 아이디어를 가지고 여러분에게 연락했습니다. 그의 시각적 창의성과 여러분의 기술적 전문성을 결합해 봅시다. 이제 [제너레이티브 아트]에 도전할 시간입니다!
+
+제약은 창의력을 발휘하고 프로젝트 기한을 단축하는 데 도움이 되므로, 두 사람은 걸작을 하나의 모양인 원으로 제한하기로 합의했습니다. 하지만 원은 여러 개가 될 것입니다. 그리고 움직일 수도 있죠! 여러분은 이것을 춤추는 점이라고 부를 것입니다.
+
+친구는 분명 점을 위한 새롭고 정교한 움직임을 생각해 내고 싶을 것이므로 나중에 새로운 애니메이션을 쉽게 정의할 수 있는 아키텍처를 만들어 코딩을 시작하게 될 것입니다.
+
 
 ## 1. Define the animation behaviour
 
@@ -125,12 +132,20 @@ Define the `init/1` callback. It should take one argument of type `opts` and ret
 
 Define the `handle_frame/3` callbacks. It should take three arguments - the dot, a frame number, and options. It should always return a dot. Implementations of this callback will modify the dot's attributes based on the current frame number and the animation's options.
 
+각 애니메이션 모듈은 두 개의 콜백을 구현해야 합니다: init/1`과 `handle_frame/3`. 애니메이션` 모듈에서 이를 정의합니다.
+
+init/1` 콜백을 정의합니다. 이 콜백은 `옵트` 타입의 인수를 하나 받고 `{:ok, opts}` 튜플 또는 `{:error, error}` 튜플을 반환해야 합니다. 이 콜백의 구현은 주어진 옵션이 이 특정 유형의 애니메이션에 유효한지 확인합니다.
+
+handle_frame/3` 콜백을 정의합니다. 이 콜백은 점, 프레임 번호, 옵션의 세 가지 인수를 받아야 합니다. 항상 점을 반환해야 합니다. 이 콜백을 구현하면 현재 프레임 번호와 애니메이션의 옵션에 따라 점의 속성이 수정됩니다.
+
 ## 2. Provide a default implementation of the `init/1` callback
 
 The `Animation` behaviour should be easy to incorporate into other modules by calling `use DancingDots.Animation`.
 
 To make that happen, implement the `__using__` macro in the `Animation` module so that it sets the `Animation` module as the other module's behaviour. It should also provide a default implementation of the `init/1` callback. The default implementation of `init/1` should return the given options unchanged.
+애니메이션 비헤이비어는 다른 모듈에서 use DancingDots.Animation을 호출하여 쉽게 통합할 수 있어야 합니다.
 
+그렇게 하려면 애니메이션 모듈에서 __using__ 매크로를 구현하여 애니메이션 모듈을 다른 모듈의 동작으로 설정하세요. 또한 init/1 콜백의 기본 구현을 제공해야 합니다. init/1의 기본 구현은 주어진 옵션을 변경하지 않고 반환해야 합니다.
 ```elixir
 defmodule MyCustomAnimation do
   use DancingDots.Animation
@@ -142,13 +157,13 @@ MyCustomAnimation.init([some_option: true])
 
 ## 3. Implement the `Flicker` animation
 
-Use the `Animation` behaviour to implement a flickering animation.
+애니메이션` 동작을 사용하여 깜박이는 애니메이션을 구현합니다.
 
-It should use the default `init/1` callback because it doesn't take any options.
+옵션을 받지 않으므로 기본 `init/1` 콜백을 사용해야 합니다.
 
-Implement the `handle_frame/3` callback, which handles a single frame. If the frame number is a multiple of four, the function should return the dot with half of its original opacity. In other frames, it should return the dot unchanged.
+단일 프레임을 처리하는 `handle_frame/3` 콜백을 구현합니다. 프레임 번호가 4의 배수인 경우 함수는 원래 불투명도의 절반을 가진 점을 반환해야 합니다. 다른 프레임에서는 점을 변경하지 않고 반환해야 합니다.
 
-Frames are counted from `1`. The dot passed to `handle_frame/3` is always the dot in its original state, not in the state from the previous frame.
+프레임은 `1`부터 계산됩니다. handle_frame/3`에 전달된 점은 항상 이전 프레임의 상태가 아닌 원래 상태의 점입니다.
 
 ```elixir
 dot = %DancingDots.Dot{x: 100, y: 100, radius: 24, opacity: 1}
@@ -171,6 +186,16 @@ Implement the `init/1` callback. It should validate that the passed options is a
 Implement the `handle_frame/3` callback. It should return the dot with its radius increased by the current frame number, minus one, times velocity.
 
 Frames are counted from `1`. The dot passed to `handle_frame/3` is always the dot in its original state, not in the state from the previous frame.
+
+애니메이션` 동작을 사용하여 확대/축소 애니메이션을 구현합니다.
+
+이 애니메이션은 속도라는 한 가지 옵션을 사용합니다. 속도는 임의의 숫자가 될 수 있습니다. 음수이면 점이 확대되는 대신 축소됩니다.
+
+init/1` 콜백을 구현합니다. 전달된 옵션이 `:속도` 키가 있는 키워드 목록인지 확인해야 합니다. 속도 값은 숫자여야 합니다. 숫자가 아닌 경우 `:속도 옵션이 필요하며, 그 값은 숫자여야 합니다' 오류를 반환합니다. Got: #{검사(속도)}"`.
+
+handle_frame/3` 콜백을 구현합니다. 이 콜백은 반경이 현재 프레임 수에서 1을 뺀 값에 속도를 곱한 값만큼 증가한 점을 반환해야 합니다.
+
+프레임은 `1`부터 계산됩니다. handle_frame/3`에 전달된 점은 항상 이전 프레임의 상태가 아닌 원래 상태의 점입니다.
 
 ```elixir
 DancingDots.Zoom.init([velocity: nil])
