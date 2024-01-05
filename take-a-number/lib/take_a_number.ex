@@ -1,24 +1,25 @@
 defmodule TakeANumber do
   def start() do
-    # Please implement the start/0 function
-    spawn(fn -> loop() end)
+    spawn(fn -> loop(0) end)
   end
 
-  def loop(s \\ 0) do
+  defp loop(state) do
     receive do
+      {:report_state, sender} ->
+        send(sender, state)
+
+        loop(state)
+
+      {:take_a_number, sender} ->
+        send(sender, state + 1)
+
+        loop(state + 1)
+
       :stop ->
-        exit(:normal)
-
-      {:report_state, sender_pid} ->
-        send(sender_pid, s)
-        loop(s)
-
-      {:take_a_number, sender_pid} ->
-        send(sender_pid, s + 1)
-        loop(s + 1)
+        nil
 
       _ ->
-        loop(s)
+        loop(state)
     end
   end
 end
