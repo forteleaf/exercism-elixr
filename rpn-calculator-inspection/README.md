@@ -57,11 +57,23 @@ Firstly, a reliability check that will detect inputs for which the calculator un
 
 Secondly, a correctness check that will check if for a given input, the result returned by the calculator is as expected. Only calculators that already passed the reliability check will undergo a correctness check, so crashes are not a concern. However, the operations should be run concurrently to speed up the process, which makes it the perfect use case for asynchronous tasks.
 
+텍사스의 _인스트루먼츠 오브 텍사스_에서 실험용 RPN 계산기에 대한 작업을 계속하고 있습니다. 팀은 대량 생산이 가능한 최고의 제품을 선택하기 위해 철저한 검사를 거쳐야 하는 몇 가지 프로토타입을 제작했습니다.
+
+두 가지 유형의 검사를 수행하려고 합니다.
+
+첫째, 검사 중인 계산기가 충돌하거나 충분히 빠르게 응답하지 않는 입력을 감지하는 신뢰성 검사입니다. 오류를 분리하려면 각 입력에 대한 계산을 별도의 프로세스에서 실행해야 합니다. 호출자 프로세스에서 출구를 연결하고 트래핑하면 계산이 완료되었는지 또는 충돌이 발생했는지 감지할 수 있습니다.
+
+둘째, 주어진 입력에 대해 계산기가 반환한 결과가 예상한 것과 같은지 확인하는 정확성 검사. 이미 신뢰성 검사를 통과한 계산기만 정확성 검사를 거치기 때문에 충돌은 걱정할 필요가 없습니다. 그러나 프로세스 속도를 높이기 위해 연산을 동시에 실행해야 하므로 비동기 작업에 적합한 사용 사례입니다.
+
 ## 1. Start a reliability check for a single input
 
 Implement the `RPNCalculatorInspection.start_reliability_check/2` function. It should take 2 arguments, a function (the calculator), and an input for the calculator. It should return a map that contains the input and the PID of the spawned process.
 
 The spawned process should call the given calculator function with the given input. The process should be linked to the caller process.
+
+RPNCalculatorInspection.start_reliability_check/2 함수를 구현합니다. 2개의 인수, 함수(계산기) 및 계산기에 대한 입력이 필요합니다. 생성된 프로세스의 입력과 PID가 포함된 맵을 반환해야 합니다.
+
+생성된 프로세스는 주어진 입력으로 주어진 계산기 함수를 호출해야 합니다. 프로세스는 호출자 프로세스에 연결되어야 합니다.
 
 ```elixir
 RPNCalculatorInspection.start_reliability_check(fn _ -> 0 end, "2 3 +")
@@ -78,14 +90,28 @@ If it receives an exit message (`{:EXIT, from, reason}`) with the reason `:norma
 
 If it receives an exit message with a different reason from the same process that runs the reliability check, it should return the results map with the value `:error` added under the key `input`.
 
-If it doesn't receive any messages matching those criteria in 100ms, it should return the results map with the value `:timeout` added under the key `input`.
+If it doesn't receive any messages matching those criteria in 100ms, it should return the results map with the value `:timeout` added under t
+
+RPNCalculatorInspection.await_reliability_check_result/2 함수를 구현합니다.
+두 가지 인수가 필요합니다.
+첫 번째 인수는 RPNCalculatorInspection.start_reliability_check/2에서 반환된 대로 신뢰성 검사 입력과 이 입력에 대한 신뢰성 검사를 실행하는 프로세스의 PID가 포함된 맵입니다.
+두 번째 인수는 다양한 입력을 사용한 신뢰성 검사 결과에 대한 누산기 역할을 하는 맵입니다.
+
+함수는 종료 메시지를 기다려야 합니다.
+
+신뢰성 검사를 실행하는 동일한 프로세스로부터 이유가 :normal인 종료 메시지({:EXIT, from, Reason})를 수신하면 키 입력 아래에 :ok 값이 추가된 결과 맵을 반환해야 합니다.
+
+신뢰성 검사를 실행하는 동일한 프로세스에서 다른 이유가 있는 종료 메시지를 받으면 키 입력 아래에 :error 값이 추가된 결과 맵을 반환해야 합니다.
+
+
+100ms 내에 해당 기준과 일치하는 메시지를 받지 못하면 키 입력 아래에 :timeout 값이 추가된 결과 맵을 반환해야 합니다.he key `input`.
 
 ```elixir
 # when an exit message is waiting for the process in its inbox
 send(self(), {:EXIT, pid, :normal})
 
 RPNCalculatorInspection.await_reliability_check_result(
-  %{input: "5 7 -", pid: pid},
+  %{input: "5 7 -", pid: pid}, 
   %{}
 )
 # => %{"5 7 -" => :ok}
